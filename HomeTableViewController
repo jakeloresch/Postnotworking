@@ -1,0 +1,51 @@
+import UIKit
+import Firebase
+import FirebaseAuth
+import FirebaseFirestore
+
+class HomeTableViewController: UITableViewController {
+    
+    var db: Firestore!
+    
+    var postArray = [Post]()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        db = Firestore.firestore()
+        loadData()
+    }
+
+    func loadData() {
+
+        db.collection("posts").getDocuments() {
+            querySnapshot, error in
+            if let error = error {
+                print("\(error.localizedDescription)")
+            }else{
+                self.postArray = querySnapshot!.documents.compactMap({Post(dictionary: $0.data())})
+                print("postArray count is  \(self.postArray.count)")
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
+        }
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
+        return postArray.count
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print("*** at cellForRoeAt, postArray count is  \(self.postArray.count)")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "postCell")!
+        let post = self.postArray[indexPath.row] as Post
+        cell.textLabel?.text = post.title
+        cell.detailTextLabel?.text = post.uid
+        return cell
+    }
